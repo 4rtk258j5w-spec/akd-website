@@ -44,7 +44,14 @@ export default function SettingsPage() {
           <label style={lb}>لون الحالة</label>
           <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>{["#16a34a","#dc2626","#f59e0b","#2563eb","#7c3aed"].map(c=><div key={c} onClick={()=>up("statusColor",c)} style={{width:"28px",height:"28px",borderRadius:"50%",backgroundColor:c,cursor:"pointer",border:d.statusColor===c?"3px solid white":"3px solid transparent"}}/>)}</div>
           <label style={lb}>🎨 اللون الرئيسي للموقع</label>
-          <div style={{display:"flex",gap:"10px",marginBottom:"12px",flexWrap:"wrap"}}>{["#ff9900","#3b82f6","#10b981","#ef4444","#8b5cf6","#f43f5e","#ffffff"].map(c=><div key={c} onClick={()=>up("primaryColor",c)} style={{width:"32px",height:"32px",borderRadius:"8px",backgroundColor:c,cursor:"pointer",border:d.primaryColor===c?"3px solid white":"3px solid transparent"}}/>)}</div>
+          <div style={{display:"flex",alignItems:"center",gap:"16px",marginBottom:"12px"}}>
+            <input type="color" value={d.primaryColor||"#ff9900"} onChange={e=>up("primaryColor",e.target.value)}
+              style={{width:"60px",height:"60px",borderRadius:"12px",border:"none",cursor:"pointer",backgroundColor:"transparent",padding:"2px"}} />
+            <div>
+              <p style={{color:"#aaa",fontSize:"13px",margin:"0 0 4px"}}>اللون المختار</p>
+              <span style={{backgroundColor:d.primaryColor||"#ff9900",color:"black",padding:"4px 16px",borderRadius:"20px",fontSize:"13px",fontWeight:"bold"}}>{d.primaryColor||"#ff9900"}</span>
+            </div>
+          </div>
         </div>
         <div style={sec}>
           <h2 style={h2s}>السيرة الذاتية / About</h2>
