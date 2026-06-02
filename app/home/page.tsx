@@ -296,11 +296,6 @@ export default function HomePage() {
                   📍 {isAr ? settings.address : settings.addressEn || settings.address}
                 </span>
               )}
-              {settings.mapLink && (
-                <a href={settings.mapLink} target="_blank" rel="noreferrer" style={{ color: "#ccc", textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1a1a1a", padding: "10px 18px", borderRadius: "10px", border: "1px solid #333" }}>
-                  🗺️ {isAr ? "الخريطة" : "Map"}
-                </a>
-              )}
             </div>
 
             {/* Social Icons */}
@@ -327,27 +322,30 @@ export default function HomePage() {
 
             {/* Working Hours Table */}
             {settings.openTime && (
-              <div style={{ overflowX: "auto" }}>
-                <h3 style={{ color: accent, marginBottom: "16px", textAlign: "center", fontSize: "16px" }}>
+              <div style={{ marginTop: "8px" }}>
+                <h3 style={{ color: accent, marginBottom: "20px", textAlign: "center", fontSize: "16px" }}>
                   🕐 {isAr ? "أوقات العمل" : "Working Hours"}
                 </h3>
-                <table style={{ width: "100%", borderCollapse: "collapse", color: "#ccc", maxWidth: "500px", margin: "0 auto" }}>
-                  <tbody>
-                    {(isAr ? DAYS_AR : DAYS_EN).map((day, i) => {
-                      const isOff = offDays.includes(String(i));
-                      return (
-                        <tr key={day} style={{ borderBottom: "1px solid #222" }}>
-                          <td style={{ padding: "10px 16px", fontWeight: "500" }}>{day}</td>
-                          <td style={{ padding: "10px 16px", textAlign: "center", color: isOff ? "#ef4444" : "#4ade80", fontWeight: "bold" }}>
-                            {isOff
-                              ? (isAr ? "مغلق" : "Closed")
-                              : `${settings.openTime} - ${settings.closeTime}`}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div style={{ maxWidth: "480px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {(isAr ? DAYS_AR : DAYS_EN).map((day, i) => {
+                    const isOff = offDays.includes(String(i));
+                    return (
+                      <div key={day} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        backgroundColor: isOff ? "#1a0a0a" : "#0a1a0a",
+                        border: `1px solid ${isOff ? "#3a1a1a" : "#1a3a1a"}`,
+                        borderRadius: "10px", padding: "12px 20px"
+                      }}>
+                        <span style={{ color: "#ddd", fontWeight: "500" }}>{day}</span>
+                        <span style={{ color: isOff ? "#ef4444" : "#4ade80", fontWeight: "bold", fontSize: "14px" }}>
+                          {isOff
+                            ? (isAr ? "مغلق" : "Closed")
+                            : `${settings.openTime} - ${settings.closeTime}`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
