@@ -5,7 +5,7 @@ import { db, storage } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 export default function SettingsPage() {
-  const [d, setD] = useState<any>({siteName:"",siteNameEn:"",status:"",statusEn:"",statusColor:"#16a34a",logoUrl:"",bio:"",bioEn:"",companyDesc:"",companyDescEn:"",phone:"",address:"",addressEn:"",mapLink:"",whatsapp:"",instagram:"",facebook:"",callNumber:"",email:"",openTime:"09:00",closeTime:"22:00",offDays:""});
+  const [d, setD] = useState<any>({siteName:"",siteNameEn:"",status:"",statusEn:"",statusColor:"#16a34a",primaryColor:"#ff9900",logoUrl:"",bio:"",bioEn:"",companyDesc:"",companyDescEn:"",phone:"",address:"",addressEn:"",mapLink:"",whatsapp:"",instagram:"",facebook:"",callNumber:"",email:"",openTime:"09:00",closeTime:"22:00",offDays:""});
   const [logoFile, setLogoFile] = useState<File|null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -43,6 +43,8 @@ export default function SettingsPage() {
           <label style={lb}>Status (English)</label><input style={is} value={d.statusEn} onChange={e=>up("statusEn",e.target.value)}/>
           <label style={lb}>لون الحالة</label>
           <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>{["#16a34a","#dc2626","#f59e0b","#2563eb","#7c3aed"].map(c=><div key={c} onClick={()=>up("statusColor",c)} style={{width:"28px",height:"28px",borderRadius:"50%",backgroundColor:c,cursor:"pointer",border:d.statusColor===c?"3px solid white":"3px solid transparent"}}/>)}</div>
+          <label style={lb}>🎨 اللون الرئيسي للموقع</label>
+          <div style={{display:"flex",gap:"10px",marginBottom:"12px",flexWrap:"wrap"}}>{["#ff9900","#3b82f6","#10b981","#ef4444","#8b5cf6","#f43f5e","#ffffff"].map(c=><div key={c} onClick={()=>up("primaryColor",c)} style={{width:"32px",height:"32px",borderRadius:"8px",backgroundColor:c,cursor:"pointer",border:d.primaryColor===c?"3px solid white":"3px solid transparent"}}/>)}</div>
         </div>
         <div style={sec}>
           <h2 style={h2s}>السيرة الذاتية / About</h2>
