@@ -135,22 +135,26 @@ export default function HomePage() {
 
       {/* ===== HERO / BIO ===== */}
       {settings && (
-        <div style={{ backgroundColor: "#0a0a0a", padding: "40px 16px", textAlign: "center", borderBottom: "1px solid #1a1a1a" }}>
-          <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-            <h1 style={{ fontSize: "26px", fontWeight: "bold", marginBottom: "16px" }}>
+        <div style={{ borderBottom: "1px solid #1a1a1a" }}>
+          {/* Banner Image */}
+          {settings.logoUrl && (
+            <div style={{ width: "100%", maxHeight: "320px", overflow: "hidden" }}>
+              <img src={settings.logoUrl} alt="banner"
+                style={{ width: "100%", height: "320px", objectFit: "cover", display: "block" }} />
+            </div>
+          )}
+          {/* Info below banner */}
+          <div style={{ backgroundColor: "#0a0a0a", padding: "24px 16px", textAlign: "center" }}>
+            <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>
               {isAr ? settings.siteName : settings.siteNameEn}
             </h1>
-            {settings.logoUrl && (
-              <img src={settings.logoUrl} alt="logo"
-                style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: `3px solid ${accent}`, display: "block", margin: "0 auto 16px" }} />
-            )}
             {settings.status && (
-              <span style={{ backgroundColor: settings.statusColor || "#16a34a", color: "white", padding: "4px 16px", borderRadius: "20px", fontSize: "13px", display: "inline-block", marginBottom: "16px" }}>
+              <span style={{ backgroundColor: settings.statusColor || "#16a34a", color: "white", padding: "4px 16px", borderRadius: "20px", fontSize: "13px", display: "inline-block", marginBottom: "12px" }}>
                 {isAr ? settings.status : settings.statusEn}
               </span>
             )}
             {settings.bio && (
-              <p style={{ color: "#aaa", lineHeight: "1.9", fontSize: "15px", margin: "0 auto" }}>
+              <p style={{ color: "#aaa", lineHeight: "1.9", fontSize: "15px", maxWidth: "700px", margin: "0 auto" }}>
                 {isAr ? settings.bio : settings.bioEn}
               </p>
             )}

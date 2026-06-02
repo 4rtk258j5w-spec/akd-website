@@ -24,4 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-@media (max-width: 768px){.page-body{padding:72px 16px 24px !important;}}
+/* Mobile dashboard padding: top bar 56px + bottom nav 64px */
+@media (max-width: 768px) {
+  .page-body {
+    padding-top: 72px !important;
+    padding-bottom: 80px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
