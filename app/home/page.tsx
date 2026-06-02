@@ -1,4 +1,5 @@
 "use client";
+import FooterSocial from "../components/FooterSocial";
 
 import { useEffect, useState } from "react";
 
@@ -200,9 +201,7 @@ export default function HomePage() {
         )}
       </div>
 
-      <footer style={{ backgroundColor: "#0a0a0a", borderTop: "1px solid #222", padding: "24px 16px", textAlign: "center", color: "#666", fontSize: "13px", marginTop: "40px" }}>
-        جميع الحقوق محفوظة — © 2025 AKD WEB
-      </footer>
+      <FooterSocial />
     </div>
   );
 }
