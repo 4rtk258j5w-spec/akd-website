@@ -4,9 +4,11 @@ import Link from "next/link";
 import { auth } from "@/app/firebase";
 import { signOut } from "firebase/auth";
 import { usePathname } from "next/navigation";
+import { usePermissions } from "@/app/hooks/usePermissions";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { isOwner, permissions } = usePermissions();
 
   const logout = async () => {
     await signOut(auth);
@@ -14,12 +16,19 @@ export default function Sidebar() {
     window.location.href = "/login";
   };
 
-  const links = [
+  const baseLinks = [
     { href: "/dashboard", label: "لوحة التحكم", icon: "🏠" },
     { href: "/posts", label: "المنشورات", icon: "📝" },
     { href: "/videos", label: "الفيديوهات", icon: "🎬" },
     { href: "/ads", label: "الإعلانات", icon: "📢" },
     { href: "/settings", label: "الإعدادات", icon: "⚙️" },
+  ];
+
+  const links = [
+    ...baseLinks,
+    ...(isOwner || permissions.admins
+      ? [{ href: "/admin", label: "إدارة الأدمنز", icon: "👥" }]
+      : []),
   ];
 
   return (
