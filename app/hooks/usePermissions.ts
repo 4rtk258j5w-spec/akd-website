@@ -36,19 +36,33 @@ export function usePermissions() {
       }
 
       try {
-        // Check if current user is owner
-        const ownerUid = typeof window !== "undefined"
+        // Check owner: first localStorage, then Firestore
+        const localOwner = typeof window !== "undefined"
           ? localStorage.getItem("akd_owner_uid")
           : null;
 
-        if (ownerUid && ownerUid === user.uid) {
+        let owner = localOwner === user.uid;
+
+        if (!owner) {
+          // Check Firestore for owner UID
+          const settingsSnap = await getDoc(doc(db, "settings", "main"));
+          if (settingsSnap.exists() && settingsSnap.data().ownerUid === user.uid) {
+            owner = true;
+            // Cache locally
+            if (typeof window !== "undefined") {
+              localStorage.setItem("akd_owner_uid", user.uid);
+            }
+          }
+        }
+
+        if (owner) {
           setIsOwner(true);
           setPermissions({ posts: true, videos: true, ads: true, settings: true, admins: true });
           setLoading(false);
           return;
         }
 
-        // Fetch permissions from Firestore
+        // Fetch permissions from Firestore admins collection
         const adminDoc = await getDoc(doc(db, "admins", user.uid));
         if (adminDoc.exists()) {
           const data = adminDoc.data();
