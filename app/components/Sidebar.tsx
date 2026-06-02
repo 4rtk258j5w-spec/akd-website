@@ -16,19 +16,13 @@ export default function Sidebar() {
     window.location.href = "/login";
   };
 
-  const baseLinks = [
+  const links = [
     { href: "/dashboard", label: "لوحة التحكم", icon: "🏠" },
     { href: "/posts", label: "المنشورات", icon: "📝" },
     { href: "/videos", label: "الفيديوهات", icon: "🎬" },
     { href: "/ads", label: "الإعلانات", icon: "📢" },
     { href: "/settings", label: "الإعدادات", icon: "⚙️" },
-  ];
-
-  const links = [
-    ...baseLinks,
-    ...(isOwner || permissions.admins
-      ? [{ href: "/admin", label: "إدارة الأدمنز", icon: "👥" }]
-      : []),
+    { href: "/admin", label: "إدارة الأدمنز", icon: "👥" },
   ];
 
   return (
