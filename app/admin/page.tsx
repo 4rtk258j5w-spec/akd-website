@@ -78,6 +78,8 @@ export default function AdminPage() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loginType, setLoginType] = useState<"email"|"phone">("email");
   const [password, setPassword] = useState("");
   const [perms, setPerms] = useState<Permissions>({ ...DEFAULT_PERMS });
   const [loading, setLoading] = useState(false);
@@ -104,7 +106,8 @@ export default function AdminPage() {
 
   const addAdmin = async () => {
     if (!displayName.trim()) return setError("أدخل الاسم");
-    if (!email.trim()) return setError("أدخل البريد الإلكتروني");
+    if (loginType === "email" && !email.trim()) return setError("أدخل البريد الإلكتروني");
+    if (loginType === "phone" && !phone.trim()) return setError("أدخل رقم الهاتف");
     if (password.length < 6) return setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
 
     setLoading(true);
@@ -112,17 +115,27 @@ export default function AdminPage() {
     setSuccess("");
 
     try {
-      // Use secondary Firebase app so current session isn't logged out
-      const secondaryApp =
-        getApps().find((a) => a.name === "secondary") ||
-        initializeApp(firebaseConfig, "secondary");
-      const secondaryAuth = getAuth(secondaryApp);
-      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-      const uid = cred.user.uid;
+      let uid: string;
+
+      if (loginType === "email") {
+        // Create Firebase Auth user via secondary app (no logout)
+        const secondaryApp =
+          getApps().find((a) => a.name === "secondary") ||
+          initializeApp(firebaseConfig, "secondary");
+        const secondaryAuth = getAuth(secondaryApp);
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        uid = cred.user.uid;
+      } else {
+        // Phone: store in Firestore only (no Firebase Auth)
+        uid = "phone_" + Date.now();
+      }
 
       await setDoc(doc(db, "admins", uid), {
-        email,
+        email: loginType === "email" ? email : "",
+        phone: loginType === "phone" ? phone : "",
+        loginType,
         displayName,
+        password: loginType === "phone" ? password : "",
         permissions: perms,
         role: "admin",
         createdAt: new Date().toISOString(),
@@ -130,6 +143,7 @@ export default function AdminPage() {
 
       setDisplayName("");
       setEmail("");
+      setPhone("");
       setPassword("");
       setPerms({ ...DEFAULT_PERMS });
       setSuccess("تم إضافة الأدمن بنجاح!");
@@ -180,14 +194,27 @@ export default function AdminPage() {
             onChange={(e) => setDisplayName(e.target.value)}
           />
 
-          <label style={lb}>البريد الإلكتروني</label>
-          <input
-            style={is}
-            type="email"
-            placeholder="email@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          {/* Login type toggle */}
+          <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+            {(["email","phone"] as const).map((t) => (
+              <button key={t} onClick={() => setLoginType(t)}
+                style={{ flex: 1, padding: "9px", borderRadius: "9px", border: `1px solid ${loginType===t?"#2563eb":"#3f3f46"}`, backgroundColor: loginType===t?"#1d4ed8":"#27272a", color: "white", cursor: "pointer", fontWeight: loginType===t?"bold":"normal", fontSize: "14px" }}>
+                {t === "email" ? "📧 إيميل" : "📱 هاتف"}
+              </button>
+            ))}
+          </div>
+
+          {loginType === "email" ? (
+            <>
+              <label style={lb}>البريد الإلكتروني</label>
+              <input style={is} type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </>
+          ) : (
+            <>
+              <label style={lb}>رقم الهاتف</label>
+              <input style={is} type="tel" placeholder="+9647xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" />
+            </>
+          )}
 
           <label style={lb}>كلمة المرور</label>
           <input
@@ -274,7 +301,9 @@ export default function AdminPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
                   <div>
                     <p style={{ fontWeight: "600", fontSize: "16px", marginBottom: "4px" }}>{admin.displayName}</p>
-                    <p style={{ color: "#71717a", fontSize: "13px", marginBottom: "8px" }}>{admin.email}</p>
+                    <p style={{ color: "#71717a", fontSize: "13px", marginBottom: "8px" }}>
+                      {(admin as any).loginType === "phone" ? `📱 ${(admin as any).phone}` : `📧 ${admin.email}`}
+                    </p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                       {PERM_LABELS.map(({ key, label }) => (
                         <span

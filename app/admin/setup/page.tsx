@@ -3,146 +3,153 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "@/app/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import Link from "next/link";
 
+type Step = "confirm" | "done";
+
 export default function SetupPage() {
-  const [currentUid, setCurrentUid] = useState<string | null>(null);
-  const [storedOwnerUid, setStoredOwnerUid] = useState<string | null>(null);
-  const [firestoreOwnerUid, setFirestoreOwnerUid] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [firestoreOwner, setFirestoreOwner] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState<Step>("confirm");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // Read from localStorage
-    const localOwner = localStorage.getItem("akd_owner_uid");
-    setStoredOwnerUid(localOwner);
-
-    // Read from Firestore
-    getDoc(doc(db, "settings", "main")).then((snap) => {
-      if (snap.exists() && snap.data().ownerUid) {
-        setFirestoreOwnerUid(snap.data().ownerUid);
-      }
-    });
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUid(user ? user.uid : null);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
       setLoading(false);
     });
-    return () => unsubscribe();
+    getDoc(doc(db, "settings", "main")).then((s) => {
+      if (s.exists() && s.data().ownerUid) setFirestoreOwner(s.data().ownerUid);
+    });
+    return () => unsub();
   }, []);
 
-  const setAsOwner = async () => {
-    if (!currentUid) return alert("يجب تسجيل الدخول أولاً");
+  const confirm = async () => {
+    if (!user) return setError("يجب تسجيل الدخول أولاً");
+    if (!password) return setError("أدخل كلمة المرور");
     setSaving(true);
+    setError("");
     try {
-      localStorage.setItem("akd_owner_uid", currentUid);
-      setStoredOwnerUid(currentUid);
+      // Re-authenticate to verify identity
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
 
-      // Merge into Firestore settings/main
-      await setDoc(doc(db, "settings", "main"), { ownerUid: currentUid }, { merge: true });
-      setFirestoreOwnerUid(currentUid);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      // Save owner
+      localStorage.setItem("akd_owner_uid", user.uid);
+      await setDoc(doc(db, "settings", "main"), { ownerUid: user.uid }, { merge: true });
+      setFirestoreOwner(user.uid);
+      setStep("done");
     } catch (e: any) {
-      alert(e.message);
+      if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+        setError("كلمة المرور غير صحيحة");
+      } else {
+        setError(e.message);
+      }
     }
     setSaving(false);
   };
 
-  const sec: React.CSSProperties = {
-    backgroundColor: "#18181b",
-    border: "1px solid #27272a",
-    borderRadius: "14px",
-    padding: "28px",
-    marginBottom: "20px",
-    maxWidth: "520px",
+  const is: React.CSSProperties = {
+    width: "100%", padding: "13px 16px", backgroundColor: "#27272a",
+    border: "1px solid #3f3f46", borderRadius: "10px", color: "white",
+    outline: "none", fontSize: "15px", boxSizing: "border-box",
   };
 
-  const uidBox: React.CSSProperties = {
-    backgroundColor: "#09090b",
-    border: "1px solid #3f3f46",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontFamily: "monospace",
-    fontSize: "13px",
-    color: "#a1a1aa",
-    wordBreak: "break-all",
-    marginTop: "6px",
-  };
+  if (loading) return (
+    <div style={{ backgroundColor: "#09090b", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ color: "#71717a" }}>جاري التحميل...</p>
+    </div>
+  );
+
+  if (!user) return (
+    <div style={{ backgroundColor: "#09090b", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ color: "#ef4444", marginBottom: "16px" }}>يجب تسجيل الدخول أولاً</p>
+        <a href="/login" style={{ color: "#3b82f6" }}>تسجيل الدخول</a>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ backgroundColor: "#09090b", minHeight: "100vh", color: "white", padding: "40px 24px", direction: "rtl" }}>
-      <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "26px", fontWeight: "bold", marginBottom: "6px" }}>إعداد المالك (Owner)</h1>
-          <p style={{ color: "#71717a", fontSize: "14px" }}>
-            صفحة إعداد لمرة واحدة — قم بتعيين حسابك الحالي كمالك للوحة التحكم.
-          </p>
-        </div>
+      <div style={{ maxWidth: "480px", margin: "0 auto" }}>
 
-        {loading ? (
-          <p style={{ color: "#71717a" }}>جاري التحميل...</p>
-        ) : (
+        {step === "confirm" && (
           <>
-            {success && (
-              <div style={{ backgroundColor: "#16a34a", color: "white", padding: "12px 18px", borderRadius: "10px", marginBottom: "16px", fontWeight: "600" }}>
-                تم تعيينك كمالك بنجاح!
+            <div style={{ marginBottom: "32px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "8px" }}>
+                🔐 تأكيد هوية المالك
+              </h1>
+              <p style={{ color: "#71717a", fontSize: "14px" }}>
+                أدخل كلمة مرور حسابك للتحقق من هويتك وتعيينك كمالك للنظام
+              </p>
+            </div>
+
+            <div style={{ backgroundColor: "#18181b", border: "1px solid #27272a", borderRadius: "14px", padding: "28px" }}>
+              {/* Current account info */}
+              <div style={{ backgroundColor: "#09090b", border: "1px solid #3f3f46", borderRadius: "10px", padding: "14px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", flexShrink: 0 }}>
+                  {user.email?.[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: "600" }}>{user.email}</p>
+                  <p style={{ fontSize: "11px", color: "#71717a", fontFamily: "monospace" }}>{user.uid.slice(0, 20)}...</p>
+                </div>
               </div>
-            )}
 
-            <div style={sec}>
-              <p style={{ color: "#a1a1aa", fontSize: "13px", marginBottom: "4px" }}>حسابك الحالي (UID)</p>
-              <div style={uidBox}>{currentUid || "غير مسجل الدخول"}</div>
-            </div>
+              <label style={{ display: "block", color: "#a1a1aa", fontSize: "13px", marginBottom: "8px" }}>
+                كلمة المرور للتأكيد
+              </label>
+              <input
+                type="password"
+                style={{ ...is, marginBottom: "16px" }}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && confirm()}
+              />
 
-            <div style={sec}>
-              <p style={{ color: "#a1a1aa", fontSize: "13px", marginBottom: "4px" }}>المالك المحفوظ في المتصفح (localStorage)</p>
-              <div style={uidBox}>{storedOwnerUid || "لم يُعيَّن بعد"}</div>
-            </div>
+              {error && (
+                <div style={{ backgroundColor: "#450a0a", border: "1px solid #dc2626", color: "#f87171", padding: "10px 14px", borderRadius: "8px", fontSize: "14px", marginBottom: "16px" }}>
+                  ⚠️ {error}
+                </div>
+              )}
 
-            <div style={sec}>
-              <p style={{ color: "#a1a1aa", fontSize: "13px", marginBottom: "4px" }}>المالك المحفوظ في Firestore</p>
-              <div style={uidBox}>{firestoreOwnerUid || "لم يُعيَّن بعد"}</div>
-            </div>
+              {firestoreOwner && firestoreOwner !== user.uid && (
+                <div style={{ backgroundColor: "#451a03", border: "1px solid #f59e0b", color: "#fbbf24", padding: "10px 14px", borderRadius: "8px", fontSize: "13px", marginBottom: "16px" }}>
+                  ⚠️ يوجد مالك آخر محدد مسبقاً. هذا سيستبدله.
+                </div>
+              )}
 
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <button
-                onClick={setAsOwner}
-                disabled={saving || !currentUid}
-                style={{
-                  backgroundColor: "#7c3aed",
-                  color: "white",
-                  fontWeight: "bold",
-                  padding: "13px 28px",
-                  borderRadius: "10px",
-                  border: "none",
-                  cursor: saving || !currentUid ? "not-allowed" : "pointer",
-                  fontSize: "15px",
-                  opacity: saving || !currentUid ? 0.7 : 1,
-                }}
+                onClick={confirm}
+                disabled={saving}
+                style={{ width: "100%", backgroundColor: "#7c3aed", color: "white", fontWeight: "bold", padding: "13px", borderRadius: "10px", border: "none", cursor: saving ? "not-allowed" : "pointer", fontSize: "15px", opacity: saving ? 0.7 : 1 }}
               >
-                {saving ? "جاري الحفظ..." : "تعيينك كمالك (Owner)"}
+                {saving ? "جاري التحقق..." : "✅ تأكيد وتعيين كمالك"}
               </button>
-              <Link
-                href="/admin"
-                style={{
-                  backgroundColor: "#27272a",
-                  color: "white",
-                  fontWeight: "600",
-                  padding: "13px 24px",
-                  borderRadius: "10px",
-                  textDecoration: "none",
-                  fontSize: "15px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                }}
-              >
-                العودة لإدارة الأدمنز
-              </Link>
             </div>
           </>
+        )}
+
+        {step === "done" && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "64px", marginBottom: "16px" }}>✅</div>
+            <h2 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "8px" }}>تم تعيينك كمالك!</h2>
+            <p style={{ color: "#71717a", marginBottom: "32px" }}>لديك الآن صلاحيات كاملة على لوحة التحكم</p>
+            <Link href="/admin"
+              style={{ backgroundColor: "#7c3aed", color: "white", padding: "13px 32px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "15px" }}>
+              الذهاب لإدارة الأدمنز
+            </Link>
+          </div>
         )}
       </div>
     </div>
