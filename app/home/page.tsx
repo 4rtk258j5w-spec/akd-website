@@ -78,6 +78,13 @@ export default function HomePage() {
   const [msg, setMsg] = useState("");
   const [settings, setSettings] = useState<any>(null);
   const [lang, setLang] = useState<"ar"|"en">("ar");
+  const [accent, setAccent] = useState("#ff9900");
+
+  // Load saved color instantly from localStorage (no flash)
+  useEffect(() => {
+    const saved = localStorage.getItem("akd_primaryColor");
+    if (saved) setAccent(saved);
+  }, []);
 
   const fetchData = async () => {
     setStatus("loading");
@@ -95,7 +102,14 @@ export default function HomePage() {
         const { doc, getDoc } = await import("firebase/firestore");
         const { db } = await import("../firebase");
         const snap = await getDoc(doc(db, "settings", "main"));
-        if (snap.exists()) setSettings(snap.data());
+        if (snap.exists()) {
+          const data = snap.data();
+          setSettings(data);
+          if (data.primaryColor) {
+            setAccent(data.primaryColor);
+            localStorage.setItem("akd_primaryColor", data.primaryColor);
+          }
+        }
       } catch(_) {}
       setMsg(p.length + " منشور، " + v.length + " فيديو، " + a.length + " إعلان");
       setStatus("done");
@@ -108,7 +122,6 @@ export default function HomePage() {
   useEffect(() => { fetchData(); }, []);
 
   const isAr = lang === "ar";
-  const accent = settings?.primaryColor || "#ff9900";
   const hasContent = posts.length > 0 || videos.length > 0 || ads.length > 0;
 
   const offDays: string[] = settings?.offDays
@@ -136,15 +149,24 @@ export default function HomePage() {
       {/* ===== HERO / BIO ===== */}
       {settings && (
         <div style={{ borderBottom: "1px solid #1a1a1a" }}>
-          {/* Banner Image */}
-          {settings.logoUrl && (
-            <div style={{ width: "100%", maxHeight: "320px", overflow: "hidden" }}>
-              <img src={settings.logoUrl} alt="banner"
-                style={{ width: "100%", height: "320px", objectFit: "cover", display: "block" }} />
+          {/* Banner Image — full width */}
+          {settings.bannerUrl ? (
+            <div style={{ width: "100%", overflow: "hidden" }}>
+              <img src={settings.bannerUrl} alt="banner"
+                style={{ width: "100%", height: "300px", objectFit: "cover", display: "block" }} />
             </div>
-          )}
+          ) : settings.logoUrl ? (
+            <div style={{ width: "100%", overflow: "hidden", background: "#111" }}>
+              <img src={settings.logoUrl} alt="banner"
+                style={{ width: "100%", height: "300px", objectFit: "contain", display: "block" }} />
+            </div>
+          ) : null}
           {/* Info below banner */}
           <div style={{ backgroundColor: "#0a0a0a", padding: "24px 16px", textAlign: "center" }}>
+            {settings.logoUrl && settings.bannerUrl && (
+              <img src={settings.logoUrl} alt="logo"
+                style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover", border: `3px solid ${accent}`, display: "block", margin: "0 auto 12px" }} />
+            )}
             <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>
               {isAr ? settings.siteName : settings.siteNameEn}
             </h1>

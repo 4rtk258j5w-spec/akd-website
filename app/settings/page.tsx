@@ -7,6 +7,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 export default function SettingsPage() {
   const [d, setD] = useState<any>({siteName:"",siteNameEn:"",status:"",statusEn:"",statusColor:"#16a34a",primaryColor:"#ff9900",logoUrl:"",bio:"",bioEn:"",companyDesc:"",companyDescEn:"",phone:"",address:"",addressEn:"",mapLink:"",whatsapp:"",instagram:"",facebook:"",callNumber:"",email:"",openTime:"09:00",closeTime:"22:00",offDays:""});
   const [logoFile, setLogoFile] = useState<File|null>(null);
+  const [bannerFile, setBannerFile] = useState<File|null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const up = (k:string,v:string) => setD((p:any)=>({...p,[k]:v}));
@@ -15,6 +16,7 @@ export default function SettingsPage() {
     setLoading(true);
     try{const data={...d};
       if(logoFile){const r=ref(storage,"settings/logo_"+Date.now());const t=uploadBytesResumable(r,logoFile);await new Promise<void>((res,rej)=>{t.on("state_changed",null,rej,async()=>{data.logoUrl=await getDownloadURL(t.snapshot.ref);res()})});}
+      if(bannerFile){const r=ref(storage,"settings/banner_"+Date.now());const t=uploadBytesResumable(r,bannerFile);await new Promise<void>((res,rej)=>{t.on("state_changed",null,rej,async()=>{data.bannerUrl=await getDownloadURL(t.snapshot.ref);res()})});}
       await setDoc(doc(db,"settings","main"),data);setD(data);setSuccess(true);setTimeout(()=>setSuccess(false),3000);
     }catch(e:any){alert(e.message)}setLoading(false);};
   const is:any={width:"100%",padding:"12px",backgroundColor:"#27272a",border:"1px solid #3f3f46",borderRadius:"10px",color:"white",outline:"none",boxSizing:"border-box",marginBottom:"10px",fontSize:"14px"};
@@ -35,8 +37,10 @@ export default function SettingsPage() {
           <h2 style={h2s}>معلومات الموقع</h2>
           <div style={{display:"flex",alignItems:"center",gap:"14px",marginBottom:"14px"}}>
             {d.logoUrl&&<img src={d.logoUrl} style={{width:"60px",height:"60px",objectFit:"cover",borderRadius:"10px"}}/>}
-            <label style={{backgroundColor:"#27272a",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"13px"}}>{logoFile?logoFile.name:"صورة الموقع"}<input type="file" accept="image/*" hidden onChange={e=>{if(e.target.files?.[0])setLogoFile(e.target.files[0])}}/></label>
+            <label style={{backgroundColor:"#27272a",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"13px"}}>{logoFile?logoFile.name:"اللوغو (دائري)"}<input type="file" accept="image/*" hidden onChange={e=>{if(e.target.files?.[0])setLogoFile(e.target.files[0])}}/></label>
+            <label style={{backgroundColor:"#7c3aed",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"13px",color:"white"}}>{bannerFile?bannerFile.name:"🖼️ بانر الموقع (عريض)"}<input type="file" accept="image/*" hidden onChange={e=>{if(e.target.files?.[0])setBannerFile(e.target.files[0])}}/></label>
           </div>
+          {d.bannerUrl&&<img src={d.bannerUrl} style={{width:"100%",height:"120px",objectFit:"cover",borderRadius:"10px",marginBottom:"10px"}}/>}
           <label style={lb}>اسم الموقع (عربي)</label><input style={is} value={d.siteName} onChange={e=>up("siteName",e.target.value)}/>
           <label style={lb}>Site Name (English)</label><input style={is} value={d.siteNameEn} onChange={e=>up("siteNameEn",e.target.value)}/>
           <label style={lb}>حالة الموقع (عربي)</label><input style={is} value={d.status} onChange={e=>up("status",e.target.value)}/>
