@@ -1,5 +1,4 @@
 "use client";
-import FooterSocial from "../components/FooterSocial";
 
 import { useEffect, useState } from "react";
 
@@ -212,10 +211,19 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Contact & Social Section */}
+      {/* About & Contact Section */}
       {settings && (
         <div style={{ backgroundColor: "#0f0f0f", borderTop: "1px solid #222", padding: "40px 16px", direction: "rtl" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+
+            {/* Company Info */}
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              {settings.logoUrl && <img src={settings.logoUrl} alt="logo" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: "3px solid #ff9900", marginBottom: "12px" }} />}
+              {settings.siteName && <h2 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "8px" }}>{settings.siteName}</h2>}
+              {settings.status && <span style={{ backgroundColor: settings.statusColor || "#16a34a", color: "white", padding: "3px 14px", borderRadius: "20px", fontSize: "12px" }}>{settings.status}</span>}
+              {settings.bio && <p style={{ color: "#aaa", marginTop: "12px", lineHeight: "1.8", maxWidth: "600px", margin: "12px auto 0" }}>{settings.bio}</p>}
+            </div>
+
             <h2 style={{ textAlign: "center", fontSize: "20px", fontWeight: "bold", marginBottom: "28px", color: "#ff9900" }}>تواصل معنا</h2>
 
             {/* Contact Info */}
@@ -262,7 +270,14 @@ export default function HomePage() {
         </div>
       )}
 
-      <FooterSocial />
+      {/* Simple Footer */}
+      <div style={{ backgroundColor: "#0a0a0a", borderTop: "1px solid #1a1a1a", padding: "20px 16px", textAlign: "center" }}>
+        <a href="/login" style={{ display: "inline-block", backgroundColor: "#ff9900", color: "black", padding: "8px 28px", borderRadius: "20px", textDecoration: "none", fontSize: "14px", fontWeight: "bold", marginBottom: "12px" }}>
+          تسجيل الدخول
+        </a>
+        <p style={{ color: "#444", fontSize: "12px", margin: 0 }}>AKD WEB 2025 © — جميع الحقوق محفوظة</p>
+      </div>
+
     </div>
   );
 }
