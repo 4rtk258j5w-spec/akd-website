@@ -146,6 +146,30 @@ export default function HomePage() {
         </div>
       </nav>
 
+      {/* ===== APP DOWNLOAD BANNER ===== */}
+      <div style={{ background: "linear-gradient(135deg,#0d47a1,#2196F3)", padding: "20px 16px", textAlign: "center" }}>
+        <div style={{ maxWidth: "820px", margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "16px" }}>
+          <div style={{ textAlign: isAr ? "right" : "left", flex: "1 1 240px", minWidth: "240px" }}>
+            <div style={{ fontSize: "20px", fontWeight: "bold", color: "#fff" }}>
+              {isAr ? "📺 حمّل تطبيق Al Arabi TV" : "📺 Get the Al Arabi TV app"}
+            </div>
+            <div style={{ fontSize: "13px", color: "#e3f2fd", marginTop: "4px" }}>
+              {isAr ? "قنوات مباشرة وأفلام ومسلسلات — أندرويد والويب" : "Live channels, movies & series — Android & Web"}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/AlArabiTV.apk" download
+              style={{ backgroundColor: "#fff", color: "#0d47a1", fontWeight: "bold", padding: "12px 22px", borderRadius: "30px", textDecoration: "none", fontSize: "15px", display: "inline-flex", alignItems: "center", gap: "8px", boxShadow: "0 4px 14px rgba(0,0,0,.3)" }}>
+              ⬇ {isAr ? "تحميل APK للأندرويد" : "Download APK"}
+            </a>
+            <a href="/app/"
+              style={{ backgroundColor: "rgba(255,255,255,.18)", color: "#fff", fontWeight: "bold", padding: "12px 22px", borderRadius: "30px", textDecoration: "none", fontSize: "15px", border: "1px solid rgba(255,255,255,.6)", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              🌐 {isAr ? "افتح نسخة الويب" : "Open Web App"}
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* ===== HERO / BIO ===== */}
       {settings && (
         <div style={{ borderBottom: "1px solid #1a1a1a" }}>
